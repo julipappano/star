@@ -1,0 +1,169 @@
+---
+title: "STAR Dataset Analysis"
+author: "Julieta Pappano"
+date: "2024-11-23"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(AER)
+library(ggplot2)
+library(stargazer)
+library(viridis) 
+library(broom)
+library(knitr)
+library(kableExtra)
+library(vtable)
+library(cobalt)
+library(texreg)
+```
+
+## Introduction
+
+The Star project was a large experiment conducted in Tennessee in the United States. Three treatments were assigned at the classroom level: small classes (13--17 students), regular classes (22--25 students), and regular classes with an aide who would work with the teacher. Krueger (1999) used the experimental data from STAR to analyze if class size mattered for learning.
+
+The dataset contains a total fo 5786 observation and 19 variables. The following table summarizes the 5 variables that are relevant for the analysis conducted in the following section
+
+```{r echo=FALSE}
+star = read.csv("star.csv")
+star2= subset(star, select = c(boy, freelunch, white_asian,black,tchexper,small))
+star_summary <- summary(star2)
+star_summary %>%
+  kable(format = "latex", caption = "Summary of STAR Dataset") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), latex_options = "HOLD_position")
+
+
+```
+
+## Analyzing Small Classes
+
+The following section focuses on students who took part of small classes (small = 1), compared to those who were part of regular-sized classes (small = 0). The mean test score of those in a small class was 931.9419 and the mean score of those in a regular with or without aid was 918.2013. These averages were calculated with the following code:
+
+```{r echo=FALSE }
+mean(star$totalscore[star$small==1])
+mean(star$totalscore[star$small==0])
+aggregate(x=star$totalscore, by=list(star$small), FUN=mean)
+```
+
+As it can be seen, smaller groups demonstrated having better results. Figure 1 shows the distribution of the data and it can be seen that it is shifted to the right, which can be confirmed by the fact that the median is higher for small classes. Thus, it can be argued that higher grades are obtained. Also, regular-sized classes present more outliers in both ends of the spectrum, however, the lower-end outliers disappear in the case of small classes. Overall, the graph shows that, when compared to those in regular classes, students in small classes obtain better grades.
+
+```{r echo=FALSE, fig.width=6, fig.height=3, fig.align='center'}
+
+ggplot(star,aes(y = totalscore, x = factor(small))) +
+  geom_boxplot() +  
+  labs(title= "Figure 1. Regular vs. Small Classes", x="Group", y="Total Score")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  coord_flip()
+```
+
+## Covariate Analysis
+
+The covariate variables found in the set are: gender, free launch, race, and teacher experience. Three methods are used to analyze whether treatment and control groups are similar and, therefore, randomization was effective. If there are any significant coefficients, then it means there is an imbalance in that variable, which signifies that treatment and control groups systematically differ on that factor.
+
+1.  Covariate balance table is generated using the vtable package, which shows the statistical significance of each variable:
+
+```{r echo=FALSE, results='asis'}
+covs <- subset(star, select = c(boy, freelunch, white_asian, black, tchexper,small))%>%
+  rename("Gender"="boy", "Free Lunch"="freelunch", "White/Asian"="white_asian", "Black"="black", "Teacher Experience"="tchexper", "Class Size" ="small")
+
+sumtable(covs, group="Class Size", group.test=TRUE, title ="Covariate Balance", digits = 2, out = "kable")%>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),latex_options = "HOLD_position")
+
+
+```
+
+As the above table shows, the only significant difference between groups is teacher experience, so this variable should be incorporated as a control variable.
+
+2.  Covariate balance graph:
+
+```{r echo=FALSE, fig.width=6, fig.height=3, fig.align='center',warning=FALSE}
+star_na=na.omit(star)
+star_na=as.data.frame(star_na)
+star_new=data.frame (old=c("boy", "freelunch", "white_asian", "black","tchexper"),
+              new=c("Gender","Free Lunch", "White/Asian","Black", "Teacher Experience"))
+              
+love.plot(small~boy+freelunch+white_asian+black+tchexper, data=star_na, stars="std", 
+          colors = "blue", var.names=star_new)
+
+```
+
+3.  Regression analysis
+
+Similarly to the previous analysis, it shows that teacher experience is not balanced among groups.
+
+```{r echo=FALSE,results='asis'}
+mod_star_check <- lm(small ~ boy + white_asian + black+ tchexper +
+                       freelunch, data = star)
+stargazer(mod_star_check, 
+                          header = FALSE,
+                          type = "latex", 
+                          covariate.labels = c("Gender", "White/Asian","Black", "Teacher Experience", "Free Lunch"),
+                          dep.var.labels = c("Class Size"),
+                          notes.align = "l",
+                          label = "tab:regression_models",
+                          title= "Covariate Analysis",
+          table.placement = "!htbp",
+          no.space=TRUE)
+```
+
+## Impact Analysis
+
+In this section, the changes in the total scores are tested considering different scenarios, with different controls. As the table shows, even though there are some variations across models, the estimate of the treatment (*small*) remains fairly stable, representing an increase between 13.55 to 14.31 points in total test scores. As such, it could be argued that the treatment of having smaller class sizes is effective when it comes to improving performance.
+
+```{r echo=FALSE,results='asis'}
+modstar1 <- lm(totalscore ~ small, data = star)
+modstar2 <- lm(totalscore ~ small + tchexper, data = star)
+modstar3 <- lm(totalscore ~ small + tchexper+boy, data = star)
+modstar4 <- lm(totalscore ~ small + tchexper+boy+white_asian+black, data = star)
+modstar5 <- lm(totalscore ~ small + tchexper+boy+white_asian+black+freelunch, data = star)
+
+stargazer(modstar1, modstar2, modstar3, modstar4, modstar5, 
+                          header = FALSE,
+                          type = "latex", 
+                          covariate.labels = c("Small (Treatment)","Teacher Experience", "Gender", "White/Asian", "Black","Free Lunch"),
+                          dep.var.labels = c("Test Score"),
+                          notes.align = "l",
+                          label = "tab:regression_models",
+                          title= "Covariate Analysis",
+          table.placement = "!htbp", column.sep.width="0pt",
+          no.space = TRUE,
+          df= FALSE)
+```
+
+### Race as a Determinant
+
+As the following plots show, there is no relation between teacher experience and the total score of students, whether they are black, white, or Asian. The data points are highly dispersed and do not match the pattern of the teacher experience variable.
+
+```{r echo=FALSE, fig.width=6, fig.height=3, fig.align='center', warning=FALSE}
+
+black_std <- star %>%
+  filter(black ==1) %>%
+  select("tchexper", "totalscore")
+
+plot3<-ggplot( data = black_std , aes( x = tchexper, y=totalscore ) ) +
+  geom_point( color="blue", size=2,header = FALSE) +
+  theme_classic()+
+  labs(x="Teacher experience",y="Test score", title="Figure 3. Black Students")+
+  geom_smooth(method=lm,se=F,formula = y~x, color="black", size=0.5)+
+  theme(plot.title = element_text(hjust = 0.5))
+plot3
+
+wa_std <- star %>%
+  filter(white_asian ==1) %>%
+  select("tchexper", "totalscore")
+
+plot4<-ggplot( data = wa_std , aes( x = tchexper, y=totalscore ) ) +
+  geom_point( color="blue", size=2) +
+  theme_classic()+
+  labs(x="Teacher experience",y="Test score", title="Figure 4. White or Asian Students")+
+  geom_smooth(method=lm,se=F,formula = y~x, color="black", size=0.5)+
+  theme(plot.title = element_text(hjust = 0.5))
+plot4
+```
+
+## References
+
+Krueger, A. B. (1999). Experimental estimates of education production functions. *The Quarterly Journal of Economics*, *114*(2), 497--532. doi:10.1162/003355399556052
