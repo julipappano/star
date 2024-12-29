@@ -38,25 +38,20 @@ data/: STAR dataset files (not included due to licensing restrictions).
 figures/: Visualizations such as histograms, boxplots, and scatterplots generated during the analysis.
 
 ## Getting Started
-1. Clone this repository:
-
-git clone https://github.com/username/STAR-Dataset-Analysis.git
-
+1. Clone this repository: git clone https://github.com/username/STAR-Dataset-Analysis.git
 2. Open the RMarkdown file STAR_Analysis.Rmd in RStudio.
 3. Knit the file to generate a report in HTML, PDF, or Word format.
 
 ## Prerequisites
 To replicate the analysis, ensure you have:
-
-R (version 4.0 or higher)
+* R (version 4.0 or higher)
 * RStudio
-
-Required R packages:
-* tidyverse
-* ggplot2
-* dplyr
-* knitr
-* rmarkdown
+* Required R packages:
+  * tidyverse
+  * ggplot2
+  * dplyr
+  * knitr
+  * rmarkdown
 
 Install all necessary packages using:
 install.packages(c("tidyverse", "ggplot2", "dplyr", "knitr", "rmarkdown"))
