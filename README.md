@@ -32,11 +32,6 @@ The STAR dataset consists of 5,786 observations and 19 variables. Key variables 
 * Teacher experience was identified as unbalanced and was incorporated as a control variable in regression models.
 * The relationship between teacher experience and test scores was found to be weak and highly dispersed across racial groups.
 
-## Project Structure
-analysis/: Contains the main RMarkdown file (STAR_Analysis.Rmd) and the generated report in PDF format.
-data/: STAR dataset files (not included due to licensing restrictions).
-figures/: Visualizations such as histograms, boxplots, and scatterplots generated during the analysis.
-
 ## Getting Started
 1. Clone this repository: git clone https://github.com/username/STAR-Dataset-Analysis.git
 2. Open the RMarkdown file STAR_Analysis.Rmd in RStudio.
@@ -61,4 +56,5 @@ Krueger, A. B. (1999). Experimental estimates of education production functions.
 
 ## Author
 Julieta Pappano
+
 Data Analyst and Public Policy Specialist, with a keen interest in leveraging data analysis to address policy and economic challenges.
