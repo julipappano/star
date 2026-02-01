@@ -55,6 +55,5 @@ install.packages(c("tidyverse", "ggplot2", "dplyr", "knitr", "rmarkdown"))
 Krueger, A. B. (1999). Experimental estimates of education production functions. The Quarterly Journal of Economics, 114(2), 497–532. doi:10.1162/003355399556052.
 
 ## Author
-Julieta Pappano
-
-Policy and Innovation Specialist
+Julieta Pappano  
+_Policy and Innovation Specialist_
