@@ -57,4 +57,4 @@ Krueger, A. B. (1999). Experimental estimates of education production functions.
 ## Author
 Julieta Pappano
 
-Data Analyst and Public Policy Specialist, with a keen interest in leveraging data analysis to address policy and economic challenges.
+Policy and Innovation Specialist
